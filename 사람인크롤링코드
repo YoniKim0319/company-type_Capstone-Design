@@ -1,0 +1,190 @@
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+
+# 여러 URL 리스트
+urls = [
+    {"name": "카카오", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=SWxZTDB4NDZWTDRFSnQ3N3krT080dz09"},
+    {"name": "쿠팡", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RzBaRnNqKzJuWVdVeHNDLzlFVjcrQT09"},
+    {"name": "우아한 형제들", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MUtLY0NLcDhMQkRmWEdBclBnalFLdz09"},
+    {"name": "페이스북", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=c0FISlVjSHlkNjc5VFd0SHF6UFdnZz09"},
+    {"name": "아마존", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=QkQwNEUyTXk4UFp5NzdaQXR1WnZGUT09"},
+    {"name": "애플", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=YlZ2V0ZhYXZ1OVdCZXZZTlFpcVhWUT09"},
+    {"name": "넷플릭스", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MTBYYXJTcjU4dUd5VFNaZW0xSmxEQT09"},
+    {"name": "구글", "url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RS9DMFhmN3g1R09ZTTA3aEw3SmtNUT09"}
+]
+
+data = {'Company Name': [], 'Company Introduction': []}
+
+browser = webdriver.Chrome()
+
+for company in urls:
+    browser.get(company["url"])
+    time.sleep(2) 
+
+    html = browser.page_source
+    soup = BeautifulSoup(html, "html.parser")
+
+    company_introduce_div = soup.find('div', class_='company_introduce')
+    if company_introduce_div:
+        txt_paragraph = company_introduce_div.find('p', class_='txt')
+        if txt_paragraph:
+            company_introduce_text = txt_paragraph.text.strip()
+        else:
+            company_introduce_text = None
+    else:
+        company_introduce_text = None
+
+    
+    data['Company Name'].append(company["name"])
+    data['Company Introduction'].append(company_introduce_text)
+
+browser.quit()
+
+
+df = pd.DataFrame(data)
+df.set_index('Company Name', inplace=True)
+
+print(df)
+df.to_csv('company_introductions.csv',encoding='utf-8-sig')
+
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+
+
+browser = webdriver.Chrome()
+
+url_and_company_names = [
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=SWxZTDB4NDZWTDRFSnQ3N3krT080dz09", "name": "카카오"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RzBaRnNqKzJuWVdVeHNDLzlFVjcrQT09", "name": "쿠팡"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MUtLY0NLcDhMQkRmWEdBclBnalFLdz09", "name": "우아한 형제들"}
+]
+
+result_data = []
+
+for data in url_and_company_names:
+    url = data["url"]
+    company_name = data["name"]
+
+    browser.get(url)
+
+    html = browser.page_source
+    soup = BeautifulSoup(html, "html.parser")
+
+    ul_tags = soup.find_all('ul', class_='list_welfare_cate')
+
+    if len(ul_tags) >= 2:
+        cate_items = second_ul_tag.find_all('li', class_='cate_item')
+
+        for cate_item in cate_items:
+            result_data.append({'Company Name': company_name, 'Cate Item': cate_item.text.strip()})
+
+
+browser.quit()
+
+result_df = pd.DataFrame(result_data)
+result_df.to_csv('salary.csv', index=False,encoding="utf-8-sig")
+
+print(result_df)
+
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+
+browser = webdriver.Chrome()
+
+url_and_company_names = [
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=SWxZTDB4NDZWTDRFSnQ3N3krT080dz09", "name": "카카오"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RzBaRnNqKzJuWVdVeHNDLzlFVjcrQT09", "name": "쿠팡"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MUtLY0NLcDhMQkRmWEdBclBnalFLdz09", "name": "우아한 형제들"}
+]
+
+result_data = []
+
+for data in url_and_company_names:
+    url = data["url"]
+    company_name = data["name"]
+
+    browser.get(url)
+
+    html = browser.page_source
+    soup = BeautifulSoup(html, "html.parser")
+
+    list_welfare_cate_tags = soup.find_all('ul', class_='list_welfare_cate')
+
+    welfare_categories = ' '.join(list_welfare_cate_tag.text.strip() for list_welfare_cate_tag in list_welfare_cate_tags)
+    result_data.append({'Company Name': company_name, 'Welfare': welfare_categories})
+
+browser.quit()
+
+result_df = pd.DataFrame(result_data)
+result_df.to_csv('company_welfare.csv', index=False)
+
+print(result_df)
+
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+
+# 웹 드라이버 초기화
+browser = webdriver.Chrome()
+
+# URL 및 회사 이름 매핑
+url_and_company_names = [
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=SWxZTDB4NDZWTDRFSnQ3N3krT080dz09", "name": "카카오"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RzBaRnNqKzJuWVdVeHNDLzlFVjcrQT09", "name": "쿠팡"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MUtLY0NLcDhMQkRmWEdBclBnalFLdz09", "name": "우아한 형제들"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=c0FISlVjSHlkNjc5VFd0SHF6UFdnZz09", "name": "페이스북"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=YlZ2V0ZhYXZ1OVdCZXZZTlFpcVhWUT09", "name": "애플"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=QkQwNEUyTXk4UFp5NzdaQXR1WnZGUT09", "name": "아마존"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=MTBYYXJTcjU4dUd5VFNaZW0xSmxEQT09", "name": "넷플릭스"},
+    {"url": "https://www.saramin.co.kr/zf_user/company-info/view?csn=RS9DMFhmN3g1R09ZTTA3aEw3SmtNUT09", "name": "구글"}
+]
+
+# 결과를 저장할 빈 리스트
+result_data = []
+
+for data in url_and_company_names:
+    url = data["url"]
+    company_name = data["name"]
+
+    browser.get(url)
+
+    # 페이지 소스 가져오기
+    html = browser.page_source
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Find all <ul class="list_welfare_cate"> tags
+    list_welfare_cate_tags = soup.find_all('ul', class_='list_welfare_cate')
+
+    # Extract and append the text of all <ul class="list_welfare_cate"> tags
+    welfare_categories = ' '.join(list_welfare_cate_tag.text.strip() for list_welfare_cate_tag in list_welfare_cate_tags)
+    result_data.append({'Company Name': company_name, 'Welfare': welfare_categories})
+
+# 웹 드라이버 종료
+browser.quit()
+
+# 결과를 데이터프레임으로 변환
+result_df = pd.DataFrame(result_data)
+
+# 결과를 CSV 파일로 저장
+result_df.to_csv('company_welfare.csv', index=False)
+
+# 결과 출력
+print(result_df)
+
+import pandas as pd
+
+df1 = pd.read_csv('paragraphs.csv')
+df2 = pd.read_csv('salary.csv')
+df3 = pd.read_csv('company_welfare.csv')
+
+df_list = [df1, df2, df3]
+df1 = df1.reset_index(drop=True)
+df2 = df2.reset_index(drop=True)
+df3 = df3.reset_index(drop=True)
+
+df_all = pd.concat(df_list, ignore_index=True)
+df_all.to_csv('output.csv', encoding='utf-8-sig', index=False)
