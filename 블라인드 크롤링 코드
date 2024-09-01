@@ -1,0 +1,136 @@
+#로그인 받는 코드 있음
+import pandas as pd
+import os
+import sys
+import time
+from selenium import webdriver
+from bs4 import BeautifulSoup
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+import re
+import warnings
+from datetime import datetime
+
+warnings.filterwarnings(action='ignore')
+
+driver = webdriver.Chrome(r"/Users/hanchaewon/Documents/chromedriver") # 자신의 크롬 드라이버 위치로 바꿔주세요
+
+#검색어 조건에 따른 url 생성
+def insta_seaching(word):
+    url = "https://www.instagram.com/explore/tags/" + str(word)
+    return url
+
+#첫번째 게시물 클릭
+def select_first(driver):
+    first = driver.find_element(By.CSS_SELECTOR, "div._aagw").click()
+    time.sleep(3)
+
+#게시물 요소 수집
+def get_content(driver):
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'lxml')
+    
+    #본문 내용
+    try:
+        content = soup.select('div._a9zs')[0].text
+        
+    except:
+        content = 'no content'
+    
+    #태그
+    tags = re.findall(r'#[^\s#,\\]+', content)
+    
+    #날짜
+    date = soup.select('time._aaqe')[0]['datetime'][:10]
+    
+    #좋아요
+    try:
+        like = soup.select_one('section._ae5m._ae5n._ae5o > div > div > span > a > span > span').text
+        
+    except Exception as e :
+        print(e)
+        like = 'no like'
+     
+    #위치
+    try:
+        place = soup.select('div._aaqm')[0].text
+        
+    except:
+        place = 'no place'
+        
+    data = [content, date, like, place, tags]
+    return data
+
+#다음 게시물 클릭
+def move_next(driver):
+    right = driver.find_element(By.CSS_SELECTOR, "div._aaqg._aaqh")
+    right.click()
+    time.sleep(3)
+    
+options = webdriver.ChromeOptions()
+
+driver.get('https://www.instagram.com')
+time.sleep(3)
+
+# ===============
+#인스타 로그인
+email = '인스타 아이디' # 본인 인스타 아이디 입력
+input_id = driver.find_element(By.NAME, "username")
+input_id.clear()
+input_id.send_keys(email)
+
+password = '인스타 비번' # 본인 인스타 비밀번호 입력
+input_pw = driver.find_element(By.NAME, "password")
+input_pw.clear()
+input_pw.send_keys(password)
+input_pw.submit()
+
+time.sleep(5)
+
+# ===============
+
+#def insta_seaching(word):
+#    url = "https://www.instagram.com/explore/tags/" + str(word)
+#    return url
+
+word = input("검색어를 입력하세요: ")
+#word = str(word)
+url = "https://www.instagram.com/explore/tags/" + str(word)
+
+driver.get(url)
+time.sleep(10)
+
+# ===============
+
+results = []
+
+target = 4
+
+select_first(driver)
+
+for i in range(target):
+    time.sleep(5)
+    
+    try:
+        data = get_content(driver)
+        results.append(data)
+        print(data)
+        move_next(driver)
+        
+    except:
+        time.sleep(2)
+        move_next(driver)
+
+# csv파일로 저장
+#date = datetime.today().strftime('%Y-%m-%d')
+#results_df = pd.DataFrame(results)
+#results_df.columns = ['content', 'date', 'like', 'place', 'tags']
+#results_df.to_excel(date + '_about' +word+' insta crawling.xlsx')
+#results_df.to_excel('C:/'/'insta crawling.xlsx')
+#results_df.to_csv('insta.csv')
+
+driver.quit()
